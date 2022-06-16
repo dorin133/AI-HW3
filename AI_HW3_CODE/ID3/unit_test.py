@@ -1,6 +1,6 @@
 import unittest
 import numpy as np
-from KNN import KNNClassifier
+import KNN
 from utils import accuracy, l2_dist
 
 

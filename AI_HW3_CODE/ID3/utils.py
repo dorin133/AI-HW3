@@ -36,12 +36,9 @@ def accuracy(y: np.array, y_pred: np.array):
 
     assert y.shape == y_pred.shape
     assert y.ndim == 1
-
-    # ====== YOUR CODE: ======
-    raise NotImplementedError
-    # ========================
-
-    return accuracy_val
+    
+    equal_elements = np.sum(y == y_pred)
+    return equal_elements / y.size
 
 
 def l2_dist(x1: np.array, x2: np.array):
@@ -57,13 +54,14 @@ def l2_dist(x1: np.array, x2: np.array):
     #  Implement L2-distance calculation efficiently as possible.
     #  Note: Use only basic numpy operations, no external code.
 
-    dists = None
-
     # ====== YOUR CODE: ======
-    raise NotImplementedError
+    dists = np.zeros((x1.shape[0], x2.shape[0]))
+    for i in range(dists.shape[0]):
+        for j in range(dists.shape[1]):
+            dists[i][j] = np.linalg.norm(x1[i,:]-x2[j,:])
+    return dists
     # ========================
 
-    return dists
 
 
 def load_data_set(clf_type: str):
@@ -160,3 +158,4 @@ def get_dataset_split(train_set: np.array, test_set: np.array, target_attribute:
     y_test = np.array(test_set[target_attribute].copy())
 
     return x_train, y_train, x_test, y_test
+
