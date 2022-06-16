@@ -16,33 +16,33 @@ def example_driver():
     in "value_and_policy_iteration.py" you will be able to run this code with no errors.
     """
 
-    parser = argparse.ArgumentParser()
-    parser.add_argument("Board", help="A file that holds the board and the reward for each state")
-    parser.add_argument("TerminalStates", help="A file that contains the terminal states in the board")
-    parser.add_argument("TransitionFunction", help="A file that contains the transition function")
-    args = parser.parse_args()
+    # parser = argparse.ArgumentParser()
+    # parser.add_argument("Board", help="A file that holds the board and the reward for each state")
+    # parser.add_argument("TerminalStates", help="A file that contains the terminal states in the board")
+    # parser.add_argument("TransitionFunction", help="A file that contains the transition function")
+    # args = parser.parse_args()
 
-    board = args.Board
-    terminal_states = args.TerminalStates
-    transition_function = args.TransitionFunction
+    # board = args.Board
+    # terminal_states = args.TerminalStates
+    # transition_function = args.TransitionFunction
 
-    is_valid_file(parser, board)
-    is_valid_file(parser, terminal_states)
+    # is_valid_file(parser, board)
+    # is_valid_file(parser, terminal_states)
 
     board_env = []
-    with open(board, 'r') as f:
+    with open('C:/Users/Dorin Shteyman/Documents/GitHub/AI-HW3/AI_HW3_CODE/MDP/board', 'r') as f:
         for line in f.readlines():
             row = line[:-1].split(',')
             board_env.append(row)
 
     terminal_states_env = []
-    with open(terminal_states, 'r') as f:
+    with open('C:/Users/Dorin Shteyman/Documents/GitHub/AI-HW3/AI_HW3_CODE/MDP/terminal_states', 'r') as f:
         for line in f.readlines():
             row = line[:-1].split(',')
             terminal_states_env.append(tuple(map(int, row)))
 
     transition_function_env = {}
-    with open(transition_function, 'r') as f:
+    with open('C:/Users/Dorin Shteyman/Documents/GitHub/AI-HW3/AI_HW3_CODE/MDP/transition_function', 'r') as f:
         for line in f.readlines():
             action, prob = line[:-1].split(':')
             prob = prob.split(',')
@@ -52,7 +52,7 @@ def example_driver():
     mdp = MDP(board=board_env,
               terminal_states=terminal_states_env,
               transition_function=transition_function_env,
-              gamma=1.0)
+              gamma=0.9)
 
     print('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@')
     print("@@@@@@ The board and rewards @@@@@@")
