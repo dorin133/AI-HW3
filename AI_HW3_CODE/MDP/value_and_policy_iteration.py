@@ -52,8 +52,6 @@ def policy_evaluation(mdp, policy):
     # Given the mdp, and a policy
     # return: the utility U(s) of each state s
     #
-
-    # ====== YOUR CODE: ======
     utility_board = np.zeros(policy.shape).astype(float)
     for _ in range(policy.shape[0]*policy.shape[1]):
         for s, _ in np.ndenumerate(policy):
@@ -67,7 +65,6 @@ def policy_evaluation(mdp, policy):
             U_s_tag = utility_board[s_tag[0]][s_tag[1]]
             utility_board[s[0]][s[1]] = float(mdp.board[s[0]][s[1]]) + mdp.gamma * U_s_tag
     return utility_board
-    # ========================
 
 
 def policy_iteration(mdp, policy_init):
@@ -98,4 +95,3 @@ def policy_iteration(mdp, policy_init):
                 changed = True
         # mdp.print_policy(optimal_policy)
     return optimal_policy
-
