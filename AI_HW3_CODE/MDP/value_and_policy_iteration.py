@@ -72,7 +72,7 @@ def policy_iteration(mdp, policy_init):
     # Given the mdp, and the initial policy - policy_init
     # run the policy iteration algorithm
     # return: the optimal policy
-    #
+    # v
     optimal_policy = policy_init
     changed = True
     while changed:
