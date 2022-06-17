@@ -32,7 +32,9 @@ class ID3:
         impurity = 0.0
 
         # ====== YOUR CODE: ======
-        raise NotImplementedError
+        total_count = sum(counts.values())
+        h_entopry = [(list(counts.values())[i]/total_count) * math.log2(list(counts.values())[i]/total_count) for i in range(len(counts))]
+        impurity = -sum(h_entopry)
         # ========================
 
         return impurity
@@ -51,15 +53,16 @@ class ID3:
         # TODO:
         #  - Calculate the entropy of the data of the left and the right child.
         #  - Calculate the info gain as shown in class.
-        assert (len(left) == len(left_labels)) and (len(right) == len(right_labels)), \
-            'The split of current node is not right, rows size should be equal to labels size.'
 
-        info_gain_value = 0.0
-        # ====== YOUR CODE: ======
-        raise NotImplementedError
-        # ========================
+        entropy_right = self.entropy(right, right_labels)
+        entropy_left = self.entropy(left, left_labels)
+        
+        total_size = len(left) + len(right)
 
-        return info_gain_value
+        sigma = ((len(right) / total_size) * entropy_right) + ((len(left) / total_size) * entropy_left)
+        
+        return current_uncertainty - sigma
+
 
     def partition(self, rows, labels, question: Question, current_uncertainty):
         """
@@ -74,15 +77,24 @@ class ID3:
         #   - For each row in the dataset, check if it matches the question.
         #   - If so, add it to 'true rows', otherwise, add it to 'false rows'.
         #   - Calculate the info gain using the `info_gain` method.
-
-        gain, true_rows, true_labels, false_rows, false_labels = None, None, None, None, None
-        assert len(rows) == len(labels), 'Rows size should be equal to labels size.'
-
+        
         # ====== YOUR CODE: ======
-        raise NotImplementedError
-        # ========================
+        gain, true_rows, true_labels, false_rows, false_labels = None, [], [], [], []
 
+        for row, label in zip(rows, labels):
+            if question.match(row):
+                true_rows.append(row)
+                true_labels.append(label)
+            else:
+                false_rows.append(row)
+                false_labels.append(label)
+
+        # current_uncertainty = self.entropy(rows, labels)
+        gain = self.info_gain(true_rows, true_labels, false_rows, false_labels, current_uncertainty)
+
+        # assert len(rows) == len(labels), 'Rows size should be equal to labels size.'
         return gain, true_rows, true_labels, false_rows, false_labels
+        # ========================
 
     def find_best_split(self, rows, labels):
         """
@@ -91,6 +103,8 @@ class ID3:
         :param labels: rows data labels.
         :return: Tuple of (best_gain, best_question, best_true_rows, best_true_labels, best_false_rows, best_false_labels)
         """
+        # ====== YOUR CODE: ======
+        
         # TODO:
         #   - For each feature of the dataset, build a proper question to partition the dataset using this feature.
         #   - find the best feature to split the data. (using the `partition` method)
@@ -100,11 +114,19 @@ class ID3:
         best_true_rows, best_true_labels = None, None
         current_uncertainty = self.entropy(rows, labels)
 
-        # ====== YOUR CODE: ======
-        raise NotImplementedError
-        # ========================
+        for feature in range(len(rows[0])):
+            column = [rows[j][feature] for j in range(len(rows))]
+            labeled_column = np.c_[np.array(column), np.array(labels)]
+            sorted_labeled_column = sorted(labeled_column, key=lambda x: x[0])
+            for val_index in range(1,len(sorted_labeled_column)):
+                q = Question(column=[float(x[0]) for x in sorted_labeled_column], column_idx=feature, value=float(sorted_labeled_column[val_index][0]))
+                gain, true_rows, true_labels, false_rows, false_labels = self.partition(rows, labels, q, current_uncertainty)
+                if gain > best_gain:
+                    best_gain, best_question, best_true_rows, best_true_labels, best_false_rows, best_false_labels = \
+                                                            gain, q, true_rows, true_labels, false_rows, false_labels
 
         return best_gain, best_question, best_true_rows, best_true_labels, best_false_rows, best_false_labels
+        # ========================
 
     def build_tree(self, rows, labels):
         """
@@ -123,10 +145,20 @@ class ID3:
         true_branch, false_branch = None, None
 
         # ====== YOUR CODE: ======
-        raise NotImplementedError
-        # ========================
+        best_gain, best_question, best_true_rows, best_true_labels, best_false_rows, best_false_labels = self.find_best_split(rows, labels)
+        if not len(set(best_true_labels)) == 1:
+            true_branch = self.build_tree(best_true_rows, best_true_labels)
+        else: 
+            return Leaf(best_true_rows, best_true_labels)
+        if not len(set(best_false_labels)) == 1:
+            false_branch = self.build_tree(best_false_rows, best_false_labels)
+        else:
+            return Leaf(best_false_rows, best_false_labels)
 
         return DecisionNode(best_question, true_branch, false_branch)
+
+        # ========================
+
 
     def fit(self, x_train, y_train):
         """
@@ -137,7 +169,11 @@ class ID3:
         # TODO: Build the tree that fits the input data and save the root to self.tree_root
 
         # ====== YOUR CODE: ======
-        raise NotImplementedError
+
+        self.tree_root = self.build_tree(x_train, y_train)
+        return
+
+        # raise NotImplementedError
         # ========================
 
     def predict_sample(self, row, node: DecisionNode or Leaf = None):
@@ -149,16 +185,21 @@ class ID3:
         # TODO: Implement ID3 class prediction for set of data.
         #   - Decide whether to follow the true-branch or the false-branch.
         #   - Compare the feature / value stored in the node, to the example we're considering.
-
+        
         if node is None:
             node = self.tree_root
         prediction = None
 
         # ====== YOUR CODE: ======
-        raise NotImplementedError
+
+        while not isinstance(node, Leaf):
+            next_branch = node.question.match(row)
+            node = node.true_branch if next_branch else node.false_branch
+        prediction = max(node.predictions, key=node.predictions.get)
+            
+        return prediction
         # ========================
 
-        return prediction
 
     def predict(self, rows):
         """
@@ -169,10 +210,13 @@ class ID3:
         # TODO:
         #  Implement ID3 class prediction for set of data.
 
-        y_pred = None
+        # y_pred = None
 
         # ====== YOUR CODE: ======
-        raise NotImplementedError
+        y_pred = []
+        for row in rows:
+            prediction = self.predict_sample(row, self.tree_root)
+            y_pred.append(prediction)
+        return y_pred
         # ========================
 
-        return y_pred
