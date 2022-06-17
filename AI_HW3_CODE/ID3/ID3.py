@@ -145,15 +145,13 @@ class ID3:
         true_branch, false_branch = None, None
 
         # ====== YOUR CODE: ======
+        if len(rows) < self.min_for_pruning or len(set(labels)) == 1:
+            return Leaf(rows, labels)
+        
         best_gain, best_question, best_true_rows, best_true_labels, best_false_rows, best_false_labels = self.find_best_split(rows, labels)
-        if not len(set(best_true_labels)) == 1:
-            true_branch = self.build_tree(best_true_rows, best_true_labels)
-        else: 
-            return Leaf(best_true_rows, best_true_labels)
-        if not len(set(best_false_labels)) == 1:
-            false_branch = self.build_tree(best_false_rows, best_false_labels)
-        else:
-            return Leaf(best_false_rows, best_false_labels)
+
+        true_branch = self.build_tree(best_true_rows, best_true_labels)
+        false_branch = self.build_tree(best_false_rows, best_false_labels)
 
         return DecisionNode(best_question, true_branch, false_branch)
 

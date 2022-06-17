@@ -1,6 +1,6 @@
 from ID3 import ID3
 from utils import *
-
+from sklearn.model_selection import KFold
 """
 Make the imports of python packages needed
 """
@@ -39,10 +39,18 @@ def find_best_pruning_m(train_dataset: np.array, m_choices, num_folds=5):
         #  or implement something else.
 
         # ====== YOUR CODE: ======
-        raise NotImplementedError
+        kf = KFold(n_splits=num_folds, shuffle=True, random_state=ID)
+        curr_accuracies = []
+        for ds_train, ds_valid in create_train_validation_split(train_dataset, kf):
+            x_train, y_train, x_test, y_test = get_dataset_split(ds_train, ds_valid, target_attribute)
+            model.fit(x_train, y_train)
+            y_pred = model.predict(x_test)
+            curr_accuracies += [accuracy(np.array(y_test), np.array(y_pred))]
+        accuracies += [curr_accuracies]
         # ========================
-
-    best_m_idx = np.argmax([np.mean(acc) for acc in accuracies])
+    mean_acc = [np.mean(acc) for acc in accuracies]
+    print(mean_acc)
+    best_m_idx = np.argmax(mean_acc)
     best_m = m_choices[best_m_idx]
 
     return best_m, accuracies
@@ -67,8 +75,8 @@ def basic_experiment(x_train, y_train, x_test, y_test, formatted_print=False):
     y_pred = tree.predict(x_test) # we get the predictions vector
     acc = utils.accuracy(np.array(y_pred), y_test)
 
-    assert acc > 0.9, 'you should get an accuracy of at least 90% for the full ID3 decision tree'
     print(f'Test Accuracy: {acc * 100:.2f}%' if formatted_print else acc)
+    assert acc > 0.9, 'you should get an accuracy of at least 90% for the full ID3 decision tree'
     # ========================
 
 
@@ -88,14 +96,14 @@ def cross_validation_experiment(plot_graph=True):
 
     best_m = None
     accuracies = []
-    m_choices = []
+    m_choices = [15, 20, 30, 45, 55]
     num_folds = 5
 
     # ====== YOUR CODE: ======
     assert len(m_choices) >= 5, 'fill the m_choices list with  at least 5 different values for M.'
-    raise NotImplementedError
-
+    best_m, accuracies = find_best_pruning_m(train_dataset=train_dataset, m_choices=m_choices, num_folds=num_folds)
     # ========================
+
     accuracies_mean = np.array([np.mean(acc) * 100 for acc in accuracies])
     if plot_graph:
         util_plot_graph(x=m_choices, y=accuracies_mean, x_label='M', y_label='Validation Accuracy %')
@@ -127,7 +135,10 @@ def best_m_test(x_train, y_train, x_test, y_test, min_for_pruning):
     acc = None
 
     # ====== YOUR CODE: ======
-    raise NotImplementedError
+    tree = ID3(['B', 'M'], min_for_pruning)
+    tree.fit(x_train, y_train) # root in updated
+    y_pred = tree.predict(x_test) # we get the predictions vector
+    acc = utils.accuracy(np.array(y_pred), y_test)
     # ========================
 
     return acc
@@ -146,20 +157,20 @@ if __name__ == '__main__':
     formatted_print = True
     basic_experiment(*data_split, formatted_print)
 
-    # """
-    #    cross validation experiment
-    #    (*) To run the cross validation experiment over the  M pruning hyper-parameter 
-    #        uncomment below code and run it
-    #        modify the value from False to True to plot the experiment result
-    # """
-    # plot_graphs = True
-    # best_m = cross_validation_experiment(plot_graph=plot_graphs)
-    # print(f'best_m = {best_m}')
+    """
+       cross validation experiment
+       (*) To run the cross validation experiment over the  M pruning hyper-parameter 
+           uncomment below code and run it
+           modify the value from False to True to plot the experiment result
+    """
+    plot_graphs = True
+    best_m = cross_validation_experiment(plot_graph=plot_graphs)
+    print(f'best_m = {best_m}')
 
-    # """
-    #     pruning experiment, run with the best parameter
-    #     (*) To run the experiment uncomment below code and run it
-    # """
-    # acc = best_m_test(*data_split, min_for_pruning=best_m)
-    # assert acc > 0.95, 'you should get an accuracy of at least 95% for the pruned ID3 decision tree'
-    # print(f'Test Accuracy: {acc * 100:.2f}%' if formatted_print else acc)
+    """
+        pruning experiment, run with the best parameter
+        (*) To run the experiment uncomment below code and run it
+    """
+    acc = best_m_test(*data_split, min_for_pruning=best_m)
+    print(f'Test Accuracy: {acc * 100:.2f}%' if formatted_print else acc)
+    assert acc > 0.95, 'you should get an accuracy of at least 95% for the pruned ID3 decision tree'
