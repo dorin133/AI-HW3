@@ -121,7 +121,7 @@ class ID3:
             for val_index in range(1,len(sorted_labeled_column)):
                 q = Question(column=[float(x[0]) for x in sorted_labeled_column], column_idx=feature, value=float(sorted_labeled_column[val_index][0]))
                 gain, true_rows, true_labels, false_rows, false_labels = self.partition(rows, labels, q, current_uncertainty)
-                if gain > best_gain:
+                if gain >= best_gain:
                     best_gain, best_question, best_true_rows, best_true_labels, best_false_rows, best_false_labels = \
                                                             gain, q, true_rows, true_labels, false_rows, false_labels
 
